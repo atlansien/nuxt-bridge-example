@@ -1,5 +1,8 @@
 <template>
-  <Tutorial />
+  <!-- <Tutorial /> -->
+  <h1>
+    Hello Nuxt-Bridge
+  </h1>
 </template>
 
 <script lang="ts">

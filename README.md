@@ -1,5 +1,10 @@
 # nuxt-bridge-example
 
+`yarn create nuxt-app`で作った素のアプリから`nuxt-bridge`が使えるようにした。
+
+手順は公式に書いてある通りに行った
+https://v3.nuxtjs.org/bridge/overview
+
 ## Build Setup
 
 ```bash
@@ -17,52 +22,83 @@ $ yarn start
 $ yarn generate
 ```
 
-For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
+## nuxt-bridge化手順
 
-## Special Directories
+### まずはアプリを作る
+```bash
+yarn create nuxt-app
+```
+選択技では`TypeScript`とテストフレームワークに`Jest`を選択。
 
-You can create the following extra directories, some of which have special behaviors. Only `pages` is required; you can delete them if you don't want to use their functionality.
+### package.jsonからnuxt2の記述を消し、nuxt-edgeに置き換えてインストール
 
-### `assets`
+```json
+- "nuxt": "^2.15.0"
++ "nuxt-edge": "latest"
+```
 
-The assets directory contains your uncompiled assets such as Stylus or Sass files, images, or fonts.
+What's nuxt-edge?
+https://www.npmjs.com/package/nuxt-edge
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/assets).
+```bash
+yarn install
+```
 
-### `components`
+### nuxt-bridgeと依存関係をインストール
 
-The components directory contains your Vue.js components. Components make up the different parts of your page and can be reused and imported into your pages, layouts and even other components.
+```bash
+yarn add --dev @nuxt/bridge@npm:@nuxt/bridge-edge
+```
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/components).
+### package.jsonのscriptsを書き換え
 
-### `layouts`
+Nuxt3 では`nuxi`というコマンドが導入されたようなので、nuxi に準じて Script の更新
 
-Layouts are a great help when you want to change the look and feel of your Nuxt app, whether you want to include a sidebar or have distinct layouts for mobile and desktop.
+```json
+  "scripts": {
+-   "dev": "nuxt",
++   "dev": "nuxi dev",
+-   "build": "nuxt build",
++   "build": "nuxi build",
+-   "start": "nuxt start",
++   "start": "nuxi preview"
+  }
+```
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/layouts).
+今回は設定していないが、nuxt.config.js で`target: static`を設定している場合は generate コマンドも nuxi に変える必要あり
 
-### `pages`
+```json
+    "build": "nuxi generate"
+```
 
-This directory contains your application views and routes. Nuxt will read all the `*.vue` files inside this directory and setup Vue Router automatically.
+### nuxt.config.jsの記述方法変更
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/get-started/routing).
+create で生成されるnuxt.config.jsに使われている`require`構文などは非推奨のため、静的 import を使用する。
 
-### `plugins`
+```js
+import { defineNuxtConfig } from '@nuxt/bridge'
 
-The plugins directory contains JavaScript plugins that you want to run before instantiating the root Vue.js Application. This is the place to add Vue plugins and to inject functions or constants. Every time you need to use `Vue.use()`, you should create a file in `plugins/` and add its path to plugins in `nuxt.config.js`.
+export default defineNuxtConfig({
+  // Your existing configuration
+})
+```
+あとは拡張子を変更、`ts`にした
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/plugins).
+### tsconfig.jsonにNuxtの自動生成された型を使用できるようにする
 
-### `static`
+```json
+{
++ "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    ...
+  }
+}
+```
 
-This directory contains your static files. Each file inside this directory is mapped to `/`.
+### 不要な依存関係を remove する
+nuxt-bridgeでサポートされている機能と重複する依存関係を remove する。今回は `@nuxt/typescript-build`のみだった
 
-Example: `/static/robots.txt` is mapped as `/robots.txt`.
+### .outputディレクトリを生成し、.gitignoreに追加。
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/static).
-
-### `store`
-
-This directory contains your Vuex store files. Creating a file in this directory automatically activates Vuex.
-
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/store).
+### Tutorial.vueを削除し、index.vueを更新。
+終わり🎉
